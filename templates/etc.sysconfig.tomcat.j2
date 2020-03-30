@@ -1,0 +1,14 @@
+# {{ ansible_managed }}
+
+#CATALINA_HOME is the location of the bin files of Tomcat
+CATALINA_HOME={{ tomcat_catalina_home }}
+
+#CATALINA_BASE is the location of the configuration files of this instance of Tomcat
+CATALINA_BASE={{ tomcat_catalina_base }}
+
+#TOMCAT_USER is the default user of tomcat
+TOMCAT_USER={{ tomcat_user }}
+
+#SHUTDOWN_WAIT is wait time in seconds for java proccess to stop
+SHUTDOWN_WAIT=60
+

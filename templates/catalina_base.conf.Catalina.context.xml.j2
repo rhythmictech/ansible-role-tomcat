@@ -1,0 +1,7 @@
+<Context name="{{ item.name }}" path="{{ item.path }}">
+
+{% for var in item.envvars %}
+  <Environment name="{{ var.name }}" value="{{ var.value }}"
+         type="java.lang.String" />
+{% endfor %}
+</Context>

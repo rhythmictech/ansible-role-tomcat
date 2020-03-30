@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Context>
+    <WatchedResource>WEB-INF/web.xml</WatchedResource>
+
+{% for resource in tomcat_global_context['jdbc_resources'] %}
+    <Resource name="{{ resource.name }}" auth="Container" type="javax.sql.DataSource"
+            driverClassName="{{ resource.driverClassName }}"
+            factory="org.apache.tomcat.jdbc.pool.DataSourceFactory"
+            maxActive="{{ resource.maxActive }}" maxIdle="{{ resource.maxIdle }}" maxWait="{{ resource.maxWait }}"
+            validationQuery="{{ resource.validationQuery }}"
+            testOnBorrow="true" validationQueryTimeout="2" testWhileIdle="true"
+            logAbandoned="true" removeAbandoned="true" removeAbandonedTimeout="300"
+            url="{{ resource.url }}"
+            username="{{ resource.username }}" password="{{ resource.password }}" />
+{% endfor %}
+
+</Context>

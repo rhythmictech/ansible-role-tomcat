@@ -1,0 +1,210 @@
+---
+- name: ensure tomcat is installed
+  include: install.yml
+  tags: ['tomcat']
+
+- name: restrict access to CATALINA_HOME
+  file: path="{{ tomcat_catalina_home }}" state=directory owner="{{ tomcat_user }}" group="{{ tomcat_group }}" mode=0750
+  tags: ['tomcat']
+
+- name: create CATALINA_BASE dirs
+  file: path="{{ item }}" state=directory owner="{{ tomcat_user }}" group="{{ tomcat_group }}" mode=0751
+  with_items:
+    - '{{ tomcat_catalina_base }}'
+    - '{{ tomcat_catalina_base }}/bin'
+    - '{{ tomcat_catalina_base }}/logs'
+    - '{{ tomcat_catalina_base }}/conf'
+    - '{{ tomcat_catalina_base }}/webapps'
+    - '{{ tomcat_catalina_base }}/temp'
+    - '{{ tomcat_catalina_base }}/classes'
+    - '{{ tomcat_catalina_base }}/lib'
+  tags: ['tomcat']
+
+- name: check if tomcat conf dir has been copied before
+  stat: path={{ tomcat_catalina_base }}/conf/context.xml
+  register: tomcat_conf_found
+  tags: ['tomcat']
+
+- name: copy tomcat conf.dist folder
+  shell: "/bin/cp -R /usr/local/tomcat/conf.dist/* {{ tomcat_catalina_base }}/conf"
+  when: tomcat_conf_found.stat.exists == false
+  tags: ['tomcat']
+
+- name: secure catalina.policy
+  file:
+    path: '{{ tomcat_catalina_base }}/conf/catalina.policy'
+    owner: '{{ tomcat_user }}'
+    group: '{{ tomcat_group }}'
+    mode: 0600
+  tags: ['tomcat']
+
+- name: secure catalina.properties
+  file:
+    path: '{{ tomcat_catalina_base }}/conf/catalina.properties'
+    owner: '{{ tomcat_user }}'
+    group: '{{ tomcat_group }}'
+    mode: 0640
+  tags: ['tomcat']
+
+- name: secure web.xml
+  file:
+    path: '{{ tomcat_catalina_base }}/conf/web.xml'
+    owner: '{{ tomcat_user }}'
+    group: '{{ tomcat_group }}'
+    mode: 0640
+  tags: ['tomcat']
+
+- name: ensure tomcat server.xml exists
+  template:
+    src: catalina_base.conf.server.xml.j2
+    dest: "{{ tomcat_catalina_base }}/conf/server.xml"
+    owner: "{{ tomcat_user }}"
+    group: "{{ tomcat_group }}"
+    mode: 0640
+  tags: ['tomcat']
+
+- name: create defaultHost directory
+  file: path="{{ tomcat_catalina_base }}/conf/Catalina/{{ tomcat_default_host }}" state=directory owner="{{ tomcat_user }}" group="{{ tomcat_group }}" mode=0750
+  tags: ['tomcat']
+
+- name: ensure tomcat manager.xml exists
+  template:
+    src: catalina_base.conf.Catalina.defaultHost.manager.xml.j2
+    dest: "{{ tomcat_catalina_base }}/conf/Catalina/{{ tomcat_default_host }}/manager.xml"
+    owner: "{{ tomcat_user }}"
+    group: "{{ tomcat_group }}"
+    mode: 0640
+  tags: ['tomcat']
+
+- name: ensure tomcat setenv.sh exists
+  template:
+    src: catalina_base.bin.setenv.sh.j2
+    dest: "{{ tomcat_catalina_base }}/bin/setenv.sh"
+    owner: "{{ tomcat_user }}"
+    group: "{{ tomcat_group }}"
+    mode: 0600
+  tags: ['tomcat']
+
+- name: ensure tomcat-users.xml exists
+  template:
+    src: catalina_base.conf.tomcat-users.xml.j2
+    dest: "{{ tomcat_catalina_base }}/conf/tomcat-users.xml"
+    owner: "{{ tomcat_user }}"
+    group: "{{ tomcat_group }}"
+    mode: 0640
+  tags: ['tomcat']
+
+- name: ensure logging.properties exists
+  template:
+    src: catalina_base.conf.logging.properties.j2
+    dest: "{{ tomcat_catalina_base }}/conf/logging.properties"
+    owner: "{{ tomcat_user }}"
+    group: "{{ tomcat_group }}"
+    mode: 0600
+  tags: ['tomcat']
+
+- name: secure catalina.policy
+  file:
+    path: "{{ tomcat_catalina_base }}/conf/catalina.policy"
+    owner: root
+    group: root
+    mode: 0600
+  tags: ['tomcat']
+
+- name: ensure /etc/init.d/tomcat exists
+  template:
+    src: etc.init.d.tomcat.j2
+    dest: /etc/init.d/tomcat
+    owner: root
+    group: root
+    mode: 0750
+  when: not ansible_distribution_major_version == '7'
+  tags: ['tomcat']
+
+- name: ensure /etc/sysconfig/tomcat exists
+  template:
+    src: etc.sysconfig.tomcat.j2
+    dest: /etc/sysconfig/tomcat
+    owner: root
+    group: root
+    mode: 0640
+  when: not ansible_distribution_major_version == '7'
+  tags: ['tomcat']
+
+- name: ensure tomcat systemd service file exists
+  template:
+    src: etc.systemd.system.tomcat.service.j2
+    dest: /etc/systemd/system/tomcat.service
+    owner: root
+    group: root
+    mode: 0755
+  register: tomcat_unit_file
+  when: ansible_distribution_major_version == '7'
+  tags: ['tomcat']
+
+- name: reload systemd
+  shell: '/bin/systemctl daemon-reload'
+  when: tomcat_unit_file.changed | default(False)
+  tags: ['tomcat']
+
+- name: ensure context directory exists
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ tomcat_user }}"
+    group: "{{ tomcat_group }}"
+    mode: 0750
+  with_items:
+    - "{{ tomcat_catalina_base }}/conf/Catalina/"
+    - "{{ tomcat_catalina_base }}/conf/Catalina/{{ tomcat_default_host }}"
+  tags: ['tomcat']
+
+- name: create pre-defined global contexts
+  template:
+    src: catalina_base.conf.context.xml.j2
+    dest: "{{ tomcat_catalina_base }}/conf/context.xml"
+    owner: "{{ tomcat_user }}"
+    group: "{{ tomcat_group }}"
+    mode: 0640
+  tags: ['tomcat']
+
+- name: create pre-defined webapp contexts
+  template:
+    src: catalina_base.conf.Catalina.context.xml.j2
+    dest: "{{ tomcat_catalina_base }}/conf/Catalina/{{ tomcat_default_host }}/{{ item.name }}.xml"
+    owner: "{{ tomcat_user }}"
+    group: "{{ tomcat_group }}"
+    mode: 0750
+  with_items: "{{ tomcat_contexts }}"
+  when: tomcat_contexts[0]
+  tags: ['tomcat']
+
+- name: allow user to restart tomcat service via sudo
+  template:
+    src: etc.sudoers.d.tomcat.j2
+    dest: /etc/sudoers.d/tomcat
+    owner: root
+    group: root
+    mode: 0640
+  when: tomcat_allow_user_restart
+  tags: ['tomcat']
+
+- name: ensure collectd jvm package is installed
+  yum:
+    name: ['collectd-java','collectd-generic-jmx']
+    state: present
+  notify: restart collectd
+  tags: ['tomcat', 'collectd']
+
+- name: place collectd jvm config
+  template: src=etc.collectd.d.jvm.conf.j2 dest=/etc/collectd.d/jvm.conf owner=root group="{{ base_collectd_user }}" mode=0640
+  notify: restart collectd
+  tags: ['tomcat', 'collectd']
+
+- name: place catalina.out logrotate configuration
+  template: src=etc.logrotate.tomcat.j2 dest=/etc/logrotate.d/tomcat owner=root group=root mode=0644
+  tags: ['tomcat', 'logrotate']
+
+- name: ensure tomcat is started and enabled
+  service: name=tomcat state=started enabled=yes
+  tags: ['tomcat']

@@ -1,0 +1,39 @@
+handlers = 1catalina.org.apache.juli.AsyncFileHandler, 2localhost.org.apache.juli.AsyncFileHandler, 3manager.org.apache.juli.AsyncFileHandler, 4host-manager.org.apache.juli.AsyncFileHandler, java.util.logging.ConsoleHandler{{ tomcat_extra_loggers | ternary(',','') }}{{ tomcat_extra_loggers | join(',', attribute='name') }}
+
+.handlers = 1catalina.org.apache.juli.AsyncFileHandler, java.util.logging.ConsoleHandler
+
+
+1catalina.org.apache.juli.AsyncFileHandler.level = FINE
+1catalina.org.apache.juli.AsyncFileHandler.directory = ${catalina.base}/logs
+1catalina.org.apache.juli.AsyncFileHandler.prefix = catalina.
+
+2localhost.org.apache.juli.AsyncFileHandler.level = FINE
+2localhost.org.apache.juli.AsyncFileHandler.directory = ${catalina.base}/logs
+2localhost.org.apache.juli.AsyncFileHandler.prefix = localhost.
+
+3manager.org.apache.juli.AsyncFileHandler.level = FINE
+3manager.org.apache.juli.AsyncFileHandler.directory = ${catalina.base}/logs
+3manager.org.apache.juli.AsyncFileHandler.prefix = manager.
+
+4host-manager.org.apache.juli.AsyncFileHandler.level = FINE
+4host-manager.org.apache.juli.AsyncFileHandler.directory = ${catalina.base}/logs
+4host-manager.org.apache.juli.AsyncFileHandler.prefix = host-manager.
+
+{% for logger in tomcat_extra_loggers %}
+{% for key,value in logger.attributes.items() %}
+{{ logger.name }}.{{ key }} = {{ value }}
+{% endfor %}
+{% for param in logger.extra_params %}
+{{ param }}
+{% endfor %}
+{% endfor %}
+
+
+org.apache.catalina.core.ContainerBase.[Catalina].[localhost].level = INFO
+org.apache.catalina.core.ContainerBase.[Catalina].[localhost].handlers = 2localhost.org.apache.juli.AsyncFileHandler
+
+org.apache.catalina.core.ContainerBase.[Catalina].[localhost].[/manager].level = INFO
+org.apache.catalina.core.ContainerBase.[Catalina].[localhost].[/manager].handlers = 3manager.org.apache.juli.AsyncFileHandler
+
+org.apache.catalina.core.ContainerBase.[Catalina].[localhost].[/host-manager].level = INFO
+org.apache.catalina.core.ContainerBase.[Catalina].[localhost].[/host-manager].handlers = 4host-manager.org.apache.juli.AsyncFileHandler

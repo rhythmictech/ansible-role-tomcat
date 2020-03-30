@@ -1,0 +1,61 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!-- {{ ansible_managed }} -->
+
+<Server port="{{ tomcat_server_port }}" shutdown="{{ tomcat_shutdown_value }}">
+  <Listener className="org.apache.catalina.startup.VersionLoggerListener" />
+  <Listener className="org.apache.catalina.core.AprLifecycleListener" SLEngine="on" />
+  <Listener className="org.apache.catalina.core.JreMemoryLeakPreventionListener" />
+  <Listener className="org.apache.catalina.mbeans.GlobalResourcesLifecycleListener" />
+  <Listener className="org.apache.catalina.core.ThreadLocalLeakPreventionListener" />
+
+  <GlobalNamingResources>
+    <Resource name="UserDatabase" auth="Container"
+              type="org.apache.catalina.UserDatabase"
+              description="User database that can be updated and saved"
+              factory="org.apache.catalina.users.MemoryUserDatabaseFactory"
+              pathname="conf/tomcat-users.xml" />
+  </GlobalNamingResources>
+
+  <Service name="Catalina">
+
+    <Connector port="{{ tomcat_http_port }}" protocol="HTTP/1.1"
+               connectionTimeout="20000" scheme="http"
+               {{ tomcat_http_connector_options }}
+               />
+
+    {% if tomcat_enable_ajp_connector %}
+        <Connector port="{{ tomcat_ajp_port }}" protocol="AJP/1.3"
+         {{ tomcat_ajp_connector_options }}
+         />
+    {% endif %}
+
+    <Engine name="Catalina" defaultHost="{{ tomcat_default_host }}" jvmRoute="{{ tomcat_jvmroute_name }}">
+
+      <Realm className="org.apache.catalina.realm.LockOutRealm">
+        <Realm className="org.apache.catalina.realm.UserDatabaseRealm"
+               resourceName="UserDatabase"/>
+      </Realm>
+
+      <Host name="{{ tomcat_hostname }}"  appBase="webapps"
+            unpackWARs="false" autoDeploy="false">
+
+{% if tomcat_preserve_proxy_info %}
+        <Valve className="org.apache.catalina.valves.RemoteIpValve"
+                remoteIpHeader="x-forwarded-for"
+                remoteIpProxiesHeader="x-forwarded-by"
+                protocolHeader="x-forwarded-proto" />
+{% endif %}
+
+        <Valve className="org.apache.catalina.valves.AccessLogValve" directory="logs"
+               prefix="localhost_access_log" suffix=".txt"
+               pattern="%h %l %u %t &quot;%r&quot; %s %b" />
+
+        <Context path="/manager" docBase="/usr/local/tomcat/webapps/manager" antiResourceLocking="false" privileged="true">
+          <Valve className="org.apache.catalina.valves.RemoteAddrValve"
+            allow="{{ tomcat_manager_remoteaddr_allow }}" />
+        </Context>
+
+      </Host>
+    </Engine>
+  </Service>
+</Server>

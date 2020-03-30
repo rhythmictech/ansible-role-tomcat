@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!-- {{ ansible_managed }} -->
+
+<tomcat-users>
+<!--
+  <role rolename="tomcat"/>
+  <role rolename="role1"/>
+  <user username="tomcat" password="tomcat" roles="tomcat"/>
+  <user username="both" password="tomcat" roles="tomcat,role1"/>
+  <user username="role1" password="tomcat" roles="role1"/>
+-->
+<role rolename="repoclient"/>
+<role rolename="repository"/>
+<role rolename="manager-status"/>
+<role rolename="manager-jmx"/>
+<user username="manager" password="{{ tomcat_manager_password }}" roles="manager-status,manager-jmx"/>
+</tomcat-users>

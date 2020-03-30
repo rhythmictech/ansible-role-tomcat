@@ -1,0 +1,23 @@
+#!/bin/sh
+# {{ ansible_managed }}
+
+# Load Java configuration.
+[ -r /etc/java/java.conf ] && . /etc/java/java.conf
+export JAVA_HOME
+
+{% for sysenvvar in tomcat_system_envvars|default([]) %}
+{{ sysenvvar.name }}="{{ sysenvvar.value }}"
+export {{ sysenvvar.name }}
+{% endfor %}
+
+JAVA_ENDORSED_DIRS={{ tomcat_catalina_base }}/endorsed
+export JAVA_ENDORSED_DIRS
+
+if [ $1 == "start" ] ; then
+  export CATALINA_OPTS="-Xmx{{ tomcat_max_heap }} -XX:-DisableExplicitGC -Djava.awt.headless=true -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=8090 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dsun.security.ssl.allowUnsafeRenegotiation=true {{ tomcat_extra_java_opts }}
+{%- for envvar in tomcat_envvars|default([]) %}
+ -D{{ envvar.name }}={{ envvar.value }}
+{%- endfor %}"
+fi
+
+CATALINA_BASE={{ tomcat_catalina_base }}
