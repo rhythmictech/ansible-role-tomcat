@@ -1,6 +1,9 @@
 ---
 - name: Converge
   hosts: all
+  vars:
+    # this is randomly generated each run if not set explicitly, which breaks idempotence checks
+    tomcat_shutdown_value: "TEST_VALUE"
   tasks:
     - name: "Include ansible-role-tomcat"
       include_role:
