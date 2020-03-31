@@ -84,13 +84,16 @@
   when: tomcat_conf_dist_found.stat.exists == false
   tags: ['tomcat']
 
+- name: give tomcat group access to read all in CATALINA_HOME
+  command: "find {{ tomcat_catalina_home }}/ -exec /bin/chgrp {{ tomcat_group }} {} \\;"
+  when: tomcat_conf_dist_found.stat.exists == false
+  tags: ['tomcat']
+  
 - name: restrict access to CATALINA_HOME
   file: path="{{ tomcat_catalina_home }}" state=directory owner="root" group="{{ tomcat_group }}" mode=0750
   tags: ['tomcat']
 
-- name: give tomcat group access to read all in CATALINA_HOME
-  command: "find {{ tomcat_catalina_home }}/ -exec /bin/chgrp {{ tomcat_group }} {} \\;"
-  tags: ['tomcat']
+
 
 - name: ensure /etc/init.d/tomcat exists
   template:

@@ -36,7 +36,7 @@
     path: '{{ tomcat_catalina_base }}/conf/catalina.policy'
     owner: '{{ tomcat_user }}'
     group: '{{ tomcat_group }}'
-    mode: 0600
+    mode: 0640
   tags: ['tomcat']
 
 - name: secure catalina.properties
@@ -102,14 +102,6 @@
     dest: "{{ tomcat_catalina_base }}/conf/logging.properties"
     owner: "{{ tomcat_user }}"
     group: "{{ tomcat_group }}"
-    mode: 0600
-  tags: ['tomcat']
-
-- name: secure catalina.policy
-  file:
-    path: "{{ tomcat_catalina_base }}/conf/catalina.policy"
-    owner: root
-    group: root
     mode: 0600
   tags: ['tomcat']
 
