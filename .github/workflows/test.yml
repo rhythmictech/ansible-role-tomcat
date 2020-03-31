@@ -2,29 +2,22 @@
 name: Molecule Test
 
 on: [push]
-
 jobs:
-  build:
-
-    runs-on: centos-latest
+  molecule:
+    runs-on: ubuntu-latest
     strategy:
-      max-parallel: 4
+      fail-fast: false
       matrix:
-        python-version: [3.5, 3.6, 3.7]
-
+        scenario:
+          - centos-6
+          - centos-7
+          - centos-8
     steps:
-      - uses: actions/checkout@v1
+      - name: Checkout
+        uses: actions/checkout@v2
         with:
-          path: molecule_demo
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v1
+          path: "${{ github.repository }}"
+      - name: Molecule
+        uses: gofrolist/molecule-action@master
         with:
-          python-version: ${{ matrix.python-version }}
-      - name: Install dependencies
-        run: |
-          sudo apt install docker
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-      - name: Test with molecule
-        run: |
-          molecule test
+          molecule_command: test
