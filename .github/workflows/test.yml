@@ -3,21 +3,27 @@ name: Molecule Test
 
 on: [push]
 jobs:
-  molecule:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+      - name: molecule
+        uses: robertdebock/molecule-action@2.0.0
+        with:
+          entrypoint: /usr/local/bin/molecule
+          args: lint
+  test:
+    needs:
+      - lint
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        scenario:
-          - centos-6
-          - centos-7
-          - centos-8
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          path: "${{ github.repository }}"
-      - name: Molecule
-        uses: gofrolist/molecule-action@master
-        with:
-          molecule_command: test
+        config:
+          - image: "centos"
+            tag: "6"
+          - image: "centos"
+            tag: "7"
+          - image: "centos"
+            tag: "8"
