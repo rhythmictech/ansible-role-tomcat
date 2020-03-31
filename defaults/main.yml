@@ -1,42 +1,74 @@
 ---
-tomcat_major_version: 8
 
+########################################
+# General Variables
+########################################
+
+### THIS MUST BE SET!
+
+########################################
+# Version/URLs
+########################################
+
+tomcat_major_version: 9
 tomcat_version: 9.0.33
+tomcat_mirror: "http://mirrors.ibiblio.org/apache"
+tomcat_download_url: "{{ tomcat_mirror }}/tomcat/tomcat-{{ tomcat_major_version }}/v{{ tomcat_version }}/bin/apache-tomcat-{{ tomcat_version }}.tar.gz"
+tomcat_checksum_url: "https://downloads.apache.org/tomcat/tomcat-{{ tomcat_major_version }}/v{{ tomcat_version }}/bin/apache-tomcat-{{ tomcat_version }}.tar.gz.sha512"
 
-tomcat_mirror: http://mirrors.ibiblio.org/apache
-
-tomcat_download_url: {{ tomcat_mirror }}/tomcat/tomcat-{{ tomcat_major_version }}/v{{ tomcat_version }}/bin/apache-tomcat-{{ tomcat_version }}.tar.gz
-tomcat_sha256_url: https://downloads.apache.org/tomcat/tomcat-{{ tomcat_major_version }}/v{{ tomcat_version }}/bin/apache-tomcat-{{ tomcat_version }}.tar.gz.sha512
+########################################
+# Security Variables
+########################################
 
 tomcat_user: tomcat
 tomcat_group: tomcat
-
-tomcat_catalina_install_dir: /opt
-tomcat_catalina_base: {{ tomcat_catalina_install_dir }}/tomcat
-tomcat_catalina_home: /usr/local/tomcat
-tomcat_working_dir: /home/{{ tomcat_user }}
-
 tomcat_allow_user_restart: false
+tomcat_umask: '0022'
+
+# This will be randomly generated every ansible run if not set
+tomcat_shutdown_value: 'SETME'
+
+########################################
+# Path/FS Variables
+########################################
+
+tomcat_catalina_base_install_dir: "/opt"
+tomcat_catalina_base: "{{ tomcat_catalina_base_install_dir }}/tomcat"
+tomcat_catalina_home_install_dir: "/usr/local"
+tomcat_catalina_home: "{{ tomcat_catalina_home_install_dir }}/tomcat"
+tomcat_working_dir: "/home/{{ tomcat_user }}"
+
+
+########################################
+# Java Variables
+########################################
+
+# Set to false if you will separately install a JDK. JDK must be installed before Tomcat runs.
+tomcat_install_jdk: true
+tomcat_install_jdk_version: "11"
 
 tomcat_extra_java_opts: ''
-
 tomcat_max_heap: 1024m
+
+########################################
+# Network Variables
+########################################
 
 tomcat_hostname: "{{ ansible_fqdn }}"
 tomcat_default_host: "{{ ansible_fqdn }}"
 tomcat_jvmroute_name: "{{ ansible_hostname }}"
 
-tomcat_manager_remoteaddr_allow: 127\.0\.0\.1
-
-tomcat_shutdown_value: 'SETME'
 tomcat_server_port: 8005
 tomcat_http_port: 8080
 tomcat_ajp_port: 8009
 tomcat_http_connector_options: ''
 
 tomcat_enable_ajp_connector: true
+tomcat_ajp_connector_options: ""
 
-tomcat_manager_password: SETME
+########################################
+# Tomcat Variables
+########################################
 
 tomcat_contexts: []
 
@@ -47,4 +79,10 @@ tomcat_preserve_proxy_info: True
 
 tomcat_extra_loggers: []
 
-tomcat_umask: '0022'
+tomcat_enable_collectd: false
+
+tomcat_enable_manager: false
+tomcat_manager_remoteaddr_allow: "127\\.0\\.0\\.1"
+tomcat_manager_password: 'SETME'
+
+tomcat_start_service: false

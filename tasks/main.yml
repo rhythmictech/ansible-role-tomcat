@@ -3,8 +3,9 @@
   include: install.yml
   tags: ['tomcat']
 
-- name: restrict access to CATALINA_HOME
-  file: path="{{ tomcat_catalina_home }}" state=directory owner="{{ tomcat_user }}" group="{{ tomcat_group }}" mode=0750
+- set_fact: 
+    tomcat_shutdown_value: "{{ lookup('password', '/dev/null length=20 chars=ascii_letters') }}"
+  when: tomcat_shutdown_value == "SETME"
   tags: ['tomcat']
 
 - name: create CATALINA_BASE dirs
@@ -74,6 +75,7 @@
     owner: "{{ tomcat_user }}"
     group: "{{ tomcat_group }}"
     mode: 0640
+  when: tomcat_enable_manager
   tags: ['tomcat']
 
 - name: ensure tomcat setenv.sh exists
@@ -109,42 +111,6 @@
     owner: root
     group: root
     mode: 0600
-  tags: ['tomcat']
-
-- name: ensure /etc/init.d/tomcat exists
-  template:
-    src: etc.init.d.tomcat.j2
-    dest: /etc/init.d/tomcat
-    owner: root
-    group: root
-    mode: 0750
-  when: not ansible_distribution_major_version == '7'
-  tags: ['tomcat']
-
-- name: ensure /etc/sysconfig/tomcat exists
-  template:
-    src: etc.sysconfig.tomcat.j2
-    dest: /etc/sysconfig/tomcat
-    owner: root
-    group: root
-    mode: 0640
-  when: not ansible_distribution_major_version == '7'
-  tags: ['tomcat']
-
-- name: ensure tomcat systemd service file exists
-  template:
-    src: etc.systemd.system.tomcat.service.j2
-    dest: /etc/systemd/system/tomcat.service
-    owner: root
-    group: root
-    mode: 0755
-  register: tomcat_unit_file
-  when: ansible_distribution_major_version == '7'
-  tags: ['tomcat']
-
-- name: reload systemd
-  shell: '/bin/systemctl daemon-reload'
-  when: tomcat_unit_file.changed | default(False)
   tags: ['tomcat']
 
 - name: ensure context directory exists
@@ -194,17 +160,20 @@
     name: ['collectd-java','collectd-generic-jmx']
     state: present
   notify: restart collectd
+  when: tomcat_enable_collectd
   tags: ['tomcat', 'collectd']
 
 - name: place collectd jvm config
   template: src=etc.collectd.d.jvm.conf.j2 dest=/etc/collectd.d/jvm.conf owner=root group="{{ base_collectd_user }}" mode=0640
   notify: restart collectd
+  when: tomcat_enable_collectd
   tags: ['tomcat', 'collectd']
 
 - name: place catalina.out logrotate configuration
   template: src=etc.logrotate.tomcat.j2 dest=/etc/logrotate.d/tomcat owner=root group=root mode=0644
   tags: ['tomcat', 'logrotate']
 
-- name: ensure tomcat is started and enabled
-  service: name=tomcat state=started enabled=yes
+- name: ensure tomcat is started
+  service: name=tomcat state=started
+  when: tomcat_start_service
   tags: ['tomcat']
