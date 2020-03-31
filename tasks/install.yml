@@ -1,19 +1,67 @@
+---
+- set_fact: ansible_distribution_major_version=6
+  when: ansible_distribution == "Amazon" and ansible_distribution_major_version == "NA"
+  tags: ['tomcat']
+
+- set_fact: ansible_distribution_major_version=7
+  when: ansible_distribution == "Amazon" and ansible_distribution_major_version == "2"
+  tags: ['tomcat']
+
+- name: ensure jdk is installed
+  yum:
+    name="java-{{ tomcat_install_jdk_version }}-openjdk" state=present
+  when: tomcat_install_jdk
+  tags: ['tomcat']
+
+- name: ensure tomcat group exists
+  group:
+    name: "{{ tomcat_group }}"
+    state: present
+  tags: ['tomcat']
+
+- name: ensure tomcat user exists
+  user:
+    name: "{{ tomcat_user }}"
+    group: "{{ tomcat_group }}"
+    state: present
+    system: true
+  tags: ['tomcat']
+
+- name: check if this tomcat version has been installed before
+  stat: path="{{ tomcat_catalina_home_install_dir }}/apache-tomcat-{{ tomcat_version }}"
+  register: tomcat_install_found
+  tags: ['tomcat']
+
 - name: download tomcat binary
   get_url:
-    url: {{ tomcat_download_url }}
-    dest: /usr/src/tomcat-{{ version }}.tar.gz
-    checksum: sha256:{{ tomcat_sha256_url }}
+    url: "{{ tomcat_download_url }}"
+    dest: "/usr/src/tomcat-{{ tomcat_version }}.tar.gz"
+    # this isn't validating correctly, not sure if ansible supports sha512 yet
+    #checksum: "sha512:{{ tomcat_checksum_url }}"
+  when: tomcat_install_found.stat.exists == false
   tags: ['tomcat']
 
 - name: extract tomcat to tomcat_home
   unarchive:
-    src: /usr/src/tomcat-{{ version }}.tar.gz
-    dest: {{ tomcat_catalina_install_dir }}
+    src: "/usr/src/tomcat-{{ tomcat_version }}.tar.gz"
+    dest: "{{ tomcat_catalina_home_install_dir }}"
+    remote_src: true
+  when: tomcat_install_found.stat.exists == false
+  tags: ['tomcat']
+
+- name: symlink tomcat location
+  file:
+    src: "{{ tomcat_catalina_home_install_dir }}/apache-tomcat-{{ tomcat_version }}"
+    dest: "{{ tomcat_catalina_home }}"
+    owner: "root"
+    group: "{{ tomcat_group }}"
+    state: link
+  when: tomcat_install_found.stat.exists == false
   tags: ['tomcat']
 
 - name: remove noisy files
   file:
-    path: {{ tomcat_catalina_home }}/{{ item }}
+    path: "{{ tomcat_catalina_home }}/{{ item }}"
     state: absent
   with_items:
     - logs
@@ -25,9 +73,62 @@
     - RUNNING.txt
   tags: ['tomcat']
 
+- name: check if tomcat conf dir has been copied before
+  stat: path={{ tomcat_catalina_home }}/conf.dist
+  register: tomcat_conf_dist_found
+  tags: ['tomcat']
+
 - name: rename conf dir
   command:
     mv {{ tomcat_catalina_home }}/conf {{ tomcat_catalina_home }}/conf.dist
+  when: tomcat_conf_dist_found.stat.exists == false
+  tags: ['tomcat']
+
+- name: give tomcat group access to read all in CATALINA_HOME
+  command: "find {{ tomcat_catalina_home }}/ -exec /bin/chgrp {{ tomcat_group }} {} \\;"
+  when: tomcat_conf_dist_found.stat.exists == false
+  tags: ['tomcat']
+  
+- name: restrict access to CATALINA_HOME
+  file: path="{{ tomcat_catalina_home }}" state=directory owner="root" group="{{ tomcat_group }}" mode=0750
+  tags: ['tomcat']
+
+
+
+- name: ensure /etc/init.d/tomcat exists
+  template:
+    src: etc.init.d.tomcat.j2
+    dest: /etc/init.d/tomcat
+    owner: root
+    group: root
+    mode: 0750
+  when: ansible_distribution_major_version == '6'
+  tags: ['tomcat']
+
+- name: ensure /etc/sysconfig/tomcat exists
+  template:
+    src: etc.sysconfig.tomcat.j2
+    dest: /etc/sysconfig/tomcat
+    owner: root
+    group: root
+    mode: 0640
+  when: ansible_distribution_major_version == '6'
+  tags: ['tomcat']
+
+- name: ensure tomcat systemd service file exists
+  template:
+    src: etc.systemd.system.tomcat.service.j2
+    dest: /etc/systemd/system/tomcat.service
+    owner: root
+    group: root
+    mode: 0755
+  register: tomcat_unit_file
+  when: ansible_distribution_major_version == '7' or ansible_distribution_major_version == '8'
+  tags: ['tomcat']
+
+- name: reload systemd
+  shell: '/bin/systemctl daemon-reload'
+  when: tomcat_unit_file.changed | default(False)
   tags: ['tomcat']
 
 - name: ensure tomcat is enabled

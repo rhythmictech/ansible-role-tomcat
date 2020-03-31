@@ -50,10 +50,12 @@
                prefix="localhost_access_log" suffix=".txt"
                pattern="%h %l %u %t &quot;%r&quot; %s %b" />
 
+{% if tomcat_enable_manager %}
         <Context path="/manager" docBase="/usr/local/tomcat/webapps/manager" antiResourceLocking="false" privileged="true">
           <Valve className="org.apache.catalina.valves.RemoteAddrValve"
             allow="{{ tomcat_manager_remoteaddr_allow }}" />
         </Context>
+{% endif %}
 
       </Host>
     </Engine>
