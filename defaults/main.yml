@@ -37,6 +37,8 @@ tomcat_catalina_base: "{{ tomcat_catalina_base_install_dir }}/tomcat"
 tomcat_catalina_home_install_dir: "/usr/local"
 tomcat_catalina_home: "{{ tomcat_catalina_home_install_dir }}/tomcat"
 tomcat_working_dir: "/home/{{ tomcat_user }}"
+# This is only compatible with JDK 8 and older
+tomcat_java_endorsed_dirs: []
 
 
 ########################################
