@@ -93,7 +93,9 @@
   file: path="{{ tomcat_catalina_home }}" state=directory owner="root" group="{{ tomcat_group }}" mode=0750
   tags: ['tomcat']
 
-
+- name: create logs directory in CATALINA_HOME
+  file: path="{{ tomcat_catalina_home }}/logs" state=directory owner="{{ tomcat_user }}" group="{{ tomcat_group }}" mode=0750
+  tags: ['tomcat']
 
 - name: ensure /etc/init.d/tomcat exists
   template:
