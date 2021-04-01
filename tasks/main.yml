@@ -31,28 +31,17 @@
   when: tomcat_conf_found.stat.exists == false
   tags: ['tomcat']
 
-- name: secure catalina.policy
+- name: secure catalina base confg files 
   file:
-    path: '{{ tomcat_catalina_base }}/conf/catalina.policy'
+    path: '{{ tomcat_catalina_base }}/conf/{{ item }}'
     owner: '{{ tomcat_user }}'
     group: '{{ tomcat_group }}'
     mode: 0640
-  tags: ['tomcat']
-
-- name: secure catalina.properties
-  file:
-    path: '{{ tomcat_catalina_base }}/conf/catalina.properties'
-    owner: '{{ tomcat_user }}'
-    group: '{{ tomcat_group }}'
-    mode: 0640
-  tags: ['tomcat']
-
-- name: secure web.xml
-  file:
-    path: '{{ tomcat_catalina_base }}/conf/web.xml'
-    owner: '{{ tomcat_user }}'
-    group: '{{ tomcat_group }}'
-    mode: 0640
+  with_items:
+    - catalina.policy
+    - catalina.properties
+    - web.xml
+    - jaspic-providers.xml
   tags: ['tomcat']
 
 - name: ensure tomcat server.xml exists
