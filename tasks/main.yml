@@ -31,12 +31,12 @@
   when: tomcat_conf_found.stat.exists == false
   tags: ['tomcat']
 
-- name: secure catalina base confg files 
+- name: secure catalina base config files 
   file:
     path: '{{ tomcat_catalina_base }}/conf/{{ item }}'
     owner: '{{ tomcat_user }}'
     group: '{{ tomcat_group }}'
-    mode: 0640
+    mode: '0640'
   with_items:
     - catalina.policy
     - catalina.properties
@@ -50,7 +50,7 @@
     dest: "{{ tomcat_catalina_base }}/conf/server.xml"
     owner: "{{ tomcat_user }}"
     group: "{{ tomcat_group }}"
-    mode: 0640
+    mode: '0640'
   tags: ['tomcat']
 
 - name: create defaultHost directory
@@ -63,7 +63,7 @@
     dest: "{{ tomcat_catalina_base }}/conf/Catalina/{{ tomcat_default_host }}/manager.xml"
     owner: "{{ tomcat_user }}"
     group: "{{ tomcat_group }}"
-    mode: 0640
+    mode: '0640'
   when: tomcat_enable_manager
   tags: ['tomcat']
 
@@ -82,7 +82,7 @@
     dest: "{{ tomcat_catalina_base }}/conf/tomcat-users.xml"
     owner: "{{ tomcat_user }}"
     group: "{{ tomcat_group }}"
-    mode: 0640
+    mode: '0640'
   tags: ['tomcat']
 
 - name: ensure logging.properties exists
@@ -100,7 +100,7 @@
     state: directory
     owner: "{{ tomcat_user }}"
     group: "{{ tomcat_group }}"
-    mode: 0750
+    mode: '0750'
   with_items:
     - "{{ tomcat_catalina_base }}/conf/Catalina/"
     - "{{ tomcat_catalina_base }}/conf/Catalina/{{ tomcat_default_host }}"
@@ -112,7 +112,7 @@
     dest: "{{ tomcat_catalina_base }}/conf/context.xml"
     owner: "{{ tomcat_user }}"
     group: "{{ tomcat_group }}"
-    mode: 0640
+    mode: '0640'
   tags: ['tomcat']
 
 - name: create pre-defined webapp contexts
@@ -121,7 +121,7 @@
     dest: "{{ tomcat_catalina_base }}/conf/Catalina/{{ tomcat_default_host }}/{{ item.name }}.xml"
     owner: "{{ tomcat_user }}"
     group: "{{ tomcat_group }}"
-    mode: 0750
+    mode: '0750'
   with_items: "{{ tomcat_contexts }}"
   when: tomcat_contexts[0]
   tags: ['tomcat']
@@ -132,7 +132,7 @@
     dest: /etc/sudoers.d/tomcat
     owner: root
     group: root
-    mode: 0640
+    mode: '0640'
   when: tomcat_allow_user_restart
   tags: ['tomcat']
 

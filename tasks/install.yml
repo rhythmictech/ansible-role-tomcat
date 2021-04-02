@@ -102,7 +102,7 @@
     dest: /etc/init.d/tomcat
     owner: root
     group: root
-    mode: 0750
+    mode: '0750'
   when: ansible_distribution_major_version == '6'
   tags: ['tomcat']
 
@@ -112,7 +112,7 @@
     dest: /etc/sysconfig/tomcat
     owner: root
     group: root
-    mode: 0640
+    mode: '0640'
   when: ansible_distribution_major_version == '6'
   tags: ['tomcat']
 
