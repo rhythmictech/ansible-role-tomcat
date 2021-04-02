@@ -9,7 +9,7 @@
   tags: ['tomcat']
 
 - name: create CATALINA_BASE dirs
-  file: path="{{ item }}" state=directory owner="{{ tomcat_user }}" group="{{ tomcat_group }}" mode=0751
+  file: path="{{ item }}" state=directory owner="{{ tomcat_user }}" group="{{ tomcat_group }}" mode='0751'
   with_items:
     - '{{ tomcat_catalina_base }}'
     - '{{ tomcat_catalina_base }}/bin'
@@ -54,7 +54,7 @@
   tags: ['tomcat']
 
 - name: create defaultHost directory
-  file: path="{{ tomcat_catalina_base }}/conf/Catalina/{{ tomcat_default_host }}" state=directory owner="{{ tomcat_user }}" group="{{ tomcat_group }}" mode=0750
+  file: path="{{ tomcat_catalina_base }}/conf/Catalina/{{ tomcat_default_host }}" state=directory owner="{{ tomcat_user }}" group="{{ tomcat_group }}" mode='0750'
   tags: ['tomcat']
 
 - name: ensure tomcat manager.xml exists
