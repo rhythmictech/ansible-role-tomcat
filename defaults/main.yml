@@ -74,6 +74,8 @@ tomcat_ajp_connector_options: ""
 
 tomcat_contexts: []
 
+tomcat_allow_root_symlinks: false
+
 tomcat_global_context:
   jdbc_resources: []
 

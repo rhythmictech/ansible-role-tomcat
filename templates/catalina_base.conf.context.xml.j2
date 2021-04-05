@@ -2,6 +2,10 @@
 <Context>
     <WatchedResource>WEB-INF/web.xml</WatchedResource>
 
+{% if tomcat_allow_root_symlinks %}
+    <Resources allowLinking="true" />
+{% endif %}
+
 {% for resource in tomcat_global_context['jdbc_resources'] %}
     <Resource name="{{ resource.name }}" auth="Container" type="javax.sql.DataSource"
             driverClassName="{{ resource.driverClassName }}"
