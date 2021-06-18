@@ -53,6 +53,26 @@
     mode: '0640'
   tags: ['tomcat']
 
+- name: create host config directory for tomcat rewrite rules (if applicable)
+  file:
+    path: "{{ tomcat_catalina_base }}/conf/Catalina/{{ tomcat_default_host }}"
+    state: directory
+    owner: "{{ tomcat_user }}"
+    group: "{{ tomcat_group }}"
+    mode: '0750'
+  when: tomcat_rewrite_rules|length > 0
+  tags: ['tomcat']
+
+- name: ensure tomcat rewrite rules are placed (if applicable)
+  copy:
+    content: "{{ tomcat_rewrite_rules | join('\n')}}"
+    dest: "{{ tomcat_catalina_base }}/conf/Catalina/{{ tomcat_default_host }}/rewrite.config"
+    owner: "{{ tomcat_user }}"
+    group: "{{ tomcat_group }}"
+    mode: '0640'
+  when: tomcat_rewrite_rules|length > 0
+  tags: ['tomcat']
+
 - name: create defaultHost directory
   file: path="{{ tomcat_catalina_base }}/conf/Catalina/{{ tomcat_default_host }}" state=directory owner="{{ tomcat_user }}" group="{{ tomcat_group }}" mode='0750'
   tags: ['tomcat']
