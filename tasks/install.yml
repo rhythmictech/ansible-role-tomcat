@@ -87,7 +87,7 @@
   command: "find {{ tomcat_catalina_home }}/ -exec /bin/chgrp {{ tomcat_group }} {} \\;"
   when: tomcat_conf_dist_found.stat.exists == false
   tags: ['tomcat']
-  
+
 - name: restrict access to CATALINA_HOME
   file: path="{{ tomcat_catalina_home }}" state=directory owner="root" group="{{ tomcat_group }}" mode='0750'
   tags: ['tomcat']

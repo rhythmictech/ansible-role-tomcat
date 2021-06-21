@@ -111,17 +111,17 @@ LoadPlugin java
       ObjectName "Catalina:type=ThreadPool,*"
       InstancePrefix "request_processor-"
       InstanceFrom "name"
-      
+
       <Value>
-        Type "threads" 
+        Type "threads"
         InstancePrefix "total"
         #InstanceFrom ""
         Table false
         Attribute "currentThreadCount"
       </Value>
-      
+
       <Value>
-        Type "threads" 
+        Type "threads"
         InstancePrefix "running"
         #InstanceFrom ""
         Table false
