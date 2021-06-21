@@ -89,4 +89,6 @@ tomcat_enable_manager: false
 tomcat_manager_remoteaddr_allow: "127\\.0\\.0\\.1"
 tomcat_manager_password: 'SETME'
 
+tomcat_rewrite_rules: []
+
 tomcat_start_service: false
