@@ -58,7 +58,14 @@
             allow="{{ tomcat_manager_remoteaddr_allow }}" />
         </Context>
 {% endif %}
-
+{% for mapping in tomcat_local_mapping %}
+        <Context path="{{ mapping.path }}" docBase="{{ mapping.docbase }}">
+{% if mapping.limit_allow is defined %}
+          <Valve className="org.apache.catalina.valves.RemoteAddrValve"
+            allow="{{ mapping.limit_allow }}" />
+{% endif %}
+        </Context>
+{% endfor %}
       </Host>
     </Engine>
   </Service>
