@@ -3,7 +3,7 @@
   include: install.yml
   tags: ['tomcat']
 
-- set_fact: 
+- set_fact:
     tomcat_shutdown_value: "{{ lookup('password', '/dev/null length=20 chars=ascii_letters') }}"
   when: tomcat_shutdown_value == "SETME"
   tags: ['tomcat']
@@ -31,7 +31,7 @@
   when: tomcat_conf_found.stat.exists == false
   tags: ['tomcat']
 
-- name: secure catalina base config files 
+- name: secure catalina base config files
   file:
     path: '{{ tomcat_catalina_base }}/conf/{{ item }}'
     owner: '{{ tomcat_user }}'
