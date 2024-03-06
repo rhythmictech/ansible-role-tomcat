@@ -1,0 +1,7 @@
+---
+
+- name: Install tomcat from rpm
+  package: 
+    name: "{{ tomcat_packages }}"
+    state: present
+  tags: ['tomcat']

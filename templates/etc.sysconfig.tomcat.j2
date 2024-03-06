@@ -9,6 +9,22 @@ CATALINA_BASE={{ tomcat_catalina_base }}
 #TOMCAT_USER is the default user of tomcat
 TOMCAT_USER={{ tomcat_user }}
 
-#SHUTDOWN_WAIT is wait time in seconds for java proccess to stop
-SHUTDOWN_WAIT=60
+{% for sysenvvar in tomcat_system_envvars|default([]) %}
+{{ sysenvvar.name }}="{{ sysenvvar.value }}"
+export {{ sysenvvar.name }}
+{% endfor %}
+
+{% if tomcat_java_endorsed_dirs|length > 0 %}
+JAVA_ENDORSED_DIRS={{ tomcat_java_endorsed_dirs|join(':') }}
+export JAVA_ENDORSED_DIRS
+{% endif %}
+
+
+CATALINA_OPTS="-Xmx{{ tomcat_max_heap }} -XX:-DisableExplicitGC -Djava.awt.headless=true -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=8090 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dsun.security.ssl.allowUnsafeRenegotiation=true {{ tomcat_extra_java_opts }}
+{%- for envvar in tomcat_envvars|default([]) %}
+ -D{{ envvar.name }}={{ envvar.value }}
+{%- endfor %}"
+
+#SHUTDOWN_WAIT is wait time in seconds for java process to stop
+SHUTDOWN_WAIT={{ tomcat_shutdown_wait }}
 

@@ -1,0 +1,28 @@
+---
+########################################
+# Version/URLs
+########################################
+
+tomcat_major_version: 9
+tomcat_packages:
+  - tomcat9
+
+# not used
+tomcat_version:
+tomcat_mirror:
+tomcat_download_url:
+tomcat_checksum_url:
+tomcat_service: tomcat9
+
+########################################
+# Path/FS Variables
+########################################
+
+tomcat_catalina_base_install_dir: "/usr/share"
+tomcat_catalina_base: "{{ tomcat_catalina_base_install_dir }}/tomcat9"
+tomcat_catalina_home_install_dir: "/usr/share"
+tomcat_catalina_home: "{{ tomcat_catalina_home_install_dir }}/tomcat9"
+tomcat_working_dir: "/home/{{ tomcat_user }}"
+# This is only compatible with JDK 8 and older
+tomcat_java_endorsed_dirs: []
+
