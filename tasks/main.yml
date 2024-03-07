@@ -1,11 +1,38 @@
 ---
-- name: ensure tomcat is installed
-  include: install.yml
+- name: include variables relevant to install type ( binary )
+  include_vars: binary_install.yml
+  when: not tomcat_install_from_repo
   tags: ['tomcat']
 
+- name: include variables relevant to install type ( rpm )
+  include_vars: package_install.yml
+  when: tomcat_install_from_repo
+  tags: ['tomcat']
+
+- name: ensure tomcat is installed (binary)
+  include_tasks: install.yml
+  when: not tomcat_install_from_repo
+  tags: ['tomcat']
+
+- name: ensure tomcat is installed (rpm)
+  include_tasks: install_repo.yml
+  when: tomcat_install_from_repo
+  
 - set_fact: 
     tomcat_shutdown_value: "{{ lookup('password', '/dev/null length=20 chars=ascii_letters') }}"
   when: tomcat_shutdown_value == "SETME"
+  tags: ['tomcat']
+
+- name: give tomcat group access to read all in CATALINA_HOME
+  command: "find {{ tomcat_catalina_home }}/ -exec /bin/chgrp {{ tomcat_group }} {} \\;"
+  tags: ['tomcat']
+  
+- name: restrict access to CATALINA_HOME
+  file: path="{{ tomcat_catalina_home }}" state=directory owner="root" group="{{ tomcat_group }}" mode='0750'
+  tags: ['tomcat']
+
+- name: ensure logs directory exists in CATALINA_HOME
+  file: path="{{ tomcat_catalina_home }}/logs" state=directory owner="{{ tomcat_user }}" group="{{ tomcat_group }}" mode='0750'
   tags: ['tomcat']
 
 - name: create CATALINA_BASE dirs
@@ -87,15 +114,6 @@
   when: tomcat_enable_manager
   tags: ['tomcat']
 
-- name: ensure tomcat setenv.sh exists
-  template:
-    src: catalina_base.bin.setenv.sh.j2
-    dest: "{{ tomcat_catalina_base }}/bin/setenv.sh"
-    owner: "{{ tomcat_user }}"
-    group: "{{ tomcat_group }}"
-    mode: 0600
-  tags: ['tomcat']
-
 - name: ensure tomcat-users.xml exists
   template:
     src: catalina_base.conf.tomcat-users.xml.j2
@@ -174,7 +192,33 @@
   template: src=etc.logrotate.tomcat.j2 dest=/etc/logrotate.d/tomcat owner=root group=root mode=0644
   tags: ['tomcat', 'logrotate']
 
+# binary only tasks
+- name: ensure tomcat setenv.sh exists
+  template:
+    src: catalina_base.bin.setenv.sh.j2
+    dest: "{{ tomcat_catalina_base }}/bin/setenv.sh"
+    owner: "{{ tomcat_user }}"
+    group: "{{ tomcat_group }}"
+    mode: 0600
+  when: not tomcat_install_from_repo
+  tags: ['tomcat']
+
+# rpm only tasks
+
+- name: ensure tomcat env var file exists
+  template:
+    src: etc.sysconfig.tomcat.j2
+    dest: "/etc/sysconfig/{{ tomcat_service }}"
+    owner: "{{ tomcat_user }}"
+    group: "{{ tomcat_group }}"
+    mode: 0600
+  when: tomcat_install_from_repo
+  tags: ['tomcat']
+
 - name: ensure tomcat is started
-  service: name=tomcat state=started
+  service: 
+    name: "{{ tomcat_service }}"
+    enabled: true
+    state: started
   when: tomcat_start_service
   tags: ['tomcat']

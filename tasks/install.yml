@@ -72,28 +72,10 @@
     - RUNNING.txt
   tags: ['tomcat']
 
-- name: check if tomcat conf dir has been copied before
-  stat: path={{ tomcat_catalina_home }}/conf.dist
-  register: tomcat_conf_dist_found
-  tags: ['tomcat']
-
 - name: rename conf dir
   command:
     mv {{ tomcat_catalina_home }}/conf {{ tomcat_catalina_home }}/conf.dist
   when: tomcat_conf_dist_found.stat.exists == false
-  tags: ['tomcat']
-
-- name: give tomcat group access to read all in CATALINA_HOME
-  command: "find {{ tomcat_catalina_home }}/ -exec /bin/chgrp {{ tomcat_group }} {} \\;"
-  when: tomcat_conf_dist_found.stat.exists == false
-  tags: ['tomcat']
-  
-- name: restrict access to CATALINA_HOME
-  file: path="{{ tomcat_catalina_home }}" state=directory owner="root" group="{{ tomcat_group }}" mode='0750'
-  tags: ['tomcat']
-
-- name: ensure logs directory exists in CATALINA_HOME
-  file: path="{{ tomcat_catalina_home }}/logs" state=directory owner="{{ tomcat_user }}" group="{{ tomcat_group }}" mode='0750'
   tags: ['tomcat']
 
 - name: ensure /etc/init.d/tomcat exists
@@ -128,10 +110,7 @@
   tags: ['tomcat']
 
 - name: reload systemd
-  shell: '/bin/systemctl daemon-reload'
+  systemd_service:
+    daemon_reload: true
   when: tomcat_unit_file.changed | default(False)
-  tags: ['tomcat']
-
-- name: ensure tomcat is enabled
-  service: name=tomcat enabled=yes
   tags: ['tomcat']
