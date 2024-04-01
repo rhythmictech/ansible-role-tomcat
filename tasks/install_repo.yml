@@ -5,3 +5,29 @@
     name: "{{ tomcat_packages }}"
     state: present
   tags: ['tomcat']
+
+- name: Create unit file override directory if configured
+  file:
+    path: "/etc/systemd/system/{{ tomcat_service }}.service.d/"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  tags: ['tomcat']
+  
+- name: Place unit file overrides if configured
+  template:
+    src: etc.systemd.system.tomcat9.service.d.overrides.conf
+    dest: "/etc/systemd/system/{{ tomcat_service }}.service.d/overrides.conf"
+    owner: root
+    group: root
+    mode: '0644'
+  when: tomcat_unit_file_overrides|length > 0
+  register: override
+  tags: ['tomcat']
+
+- name: Reload systemd daemon
+  systemd_service:
+    daemon_reload: true
+  when: override.changed
+  tags: ['tomcat']

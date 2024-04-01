@@ -16,6 +16,7 @@ tomcat_group: tomcat
 tomcat_allow_user_restart: false
 tomcat_umask: '0022'
 tomcat_add_user_to_group: false
+tomcat_unit_file_overrides: []
 
 # This will be randomly generated every ansible run if not set
 tomcat_shutdown_value: 'SETME'
