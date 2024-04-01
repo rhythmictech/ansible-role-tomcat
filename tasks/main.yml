@@ -17,6 +17,15 @@
 - name: ensure tomcat is installed (rpm)
   include_tasks: install_repo.yml
   when: tomcat_install_from_repo
+  tags: ['tomcat']
+
+- name: Add tomcat user to tomcat group if configured
+  user:
+    name: "{{ tomcat_user }}"
+    append: true
+    groups: ["{{ tomcat_group }}"]
+  when: tomcat_add_user_to_group
+  tags: ['tomcat']
   
 - set_fact: 
     tomcat_shutdown_value: "{{ lookup('password', '/dev/null length=20 chars=ascii_letters') }}"
