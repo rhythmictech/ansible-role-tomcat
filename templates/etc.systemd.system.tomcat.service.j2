@@ -5,17 +5,17 @@ After=syslog.target network.target
 [Service]
 Type=forking
 
-Environment=CATALINA_PID={{ tomcat_catalina_base }}/temp/tomcat.pid
-Environment=CATALINA_HOME={{ tomcat_catalina_home }}
-Environment=CATALINA_BASE={{ tomcat_catalina_base }}
+Environment=CATALINA_PID={{ _tomcat_catalina_base }}/temp/tomcat.pid
+Environment=CATALINA_HOME={{ _tomcat_catalina_home }}
+Environment=CATALINA_BASE={{ _tomcat_catalina_base }}
 Environment=UMASK={{ tomcat_umask }}
 
 {% if tomcat_major_version is version(8, '==') %}
-PIDFile={{ tomcat_catalina_base }}/temp/tomcat.pid
+PIDFile={{ _tomcat_catalina_base }}/temp/tomcat.pid
 {% endif %}
 
-ExecStart={{ tomcat_catalina_home }}/bin/startup.sh
-ExecStop={{ tomcat_catalina_home }}/bin/shutdown.sh -force
+ExecStart={{ _tomcat_catalina_home }}/bin/startup.sh
+ExecStop={{ _tomcat_catalina_home }}/bin/shutdown.sh -force
 
 WorkingDirectory={{ tomcat_working_dir }}
 

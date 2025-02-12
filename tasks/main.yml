@@ -33,43 +33,43 @@
   tags: ['tomcat']
 
 - name: give tomcat group access to read all in CATALINA_HOME
-  command: "find {{ tomcat_catalina_home }}/ -exec /bin/chgrp {{ tomcat_group }} {} \\;"
+  command: "find {{ _tomcat_catalina_home }}/ -exec /bin/chgrp {{ tomcat_group }} {} \\;"
   tags: ['tomcat']
   
 - name: restrict access to CATALINA_HOME
-  file: path="{{ tomcat_catalina_home }}" state=directory owner="root" group="{{ tomcat_group }}" mode='0750'
+  file: path="{{ _tomcat_catalina_home }}" state=directory owner="root" group="{{ tomcat_group }}" mode='0750'
   tags: ['tomcat']
 
 - name: ensure logs directory exists in CATALINA_HOME
-  file: path="{{ tomcat_catalina_home }}/logs" state=directory owner="{{ tomcat_user }}" group="{{ tomcat_group }}" mode='0750'
+  file: path="{{ _tomcat_catalina_home }}/logs" state=directory owner="{{ tomcat_user }}" group="{{ tomcat_group }}" mode='0750'
   tags: ['tomcat']
 
 - name: create CATALINA_BASE dirs
   file: path="{{ item }}" state=directory owner="{{ tomcat_user }}" group="{{ tomcat_group }}" mode='0751'
   with_items:
-    - '{{ tomcat_catalina_base }}'
-    - '{{ tomcat_catalina_base }}/bin'
-    - '{{ tomcat_catalina_base }}/logs'
-    - '{{ tomcat_catalina_base }}/conf'
-    - '{{ tomcat_catalina_base }}/webapps'
-    - '{{ tomcat_catalina_base }}/temp'
-    - '{{ tomcat_catalina_base }}/classes'
-    - '{{ tomcat_catalina_base }}/lib'
+    - '{{ _tomcat_catalina_base }}'
+    - '{{ _tomcat_catalina_base }}/bin'
+    - '{{ _tomcat_catalina_base }}/logs'
+    - '{{ _tomcat_catalina_base }}/conf'
+    - '{{ _tomcat_catalina_base }}/webapps'
+    - '{{ _tomcat_catalina_base }}/temp'
+    - '{{ _tomcat_catalina_base }}/classes'
+    - '{{ _tomcat_catalina_base }}/lib'
   tags: ['tomcat']
 
 - name: check if tomcat conf dir has been copied before
-  stat: path={{ tomcat_catalina_base }}/conf/context.xml
+  stat: path={{ _tomcat_catalina_base }}/conf/context.xml
   register: tomcat_conf_found
   tags: ['tomcat']
 
 - name: copy tomcat conf.dist folder
-  shell: "/bin/cp -R /usr/local/tomcat/conf.dist/* {{ tomcat_catalina_base }}/conf"
+  shell: "/bin/cp -R /usr/local/tomcat/conf.dist/* {{ _tomcat_catalina_base }}/conf"
   when: tomcat_conf_found.stat.exists == false
   tags: ['tomcat']
 
 - name: secure catalina base config files 
   file:
-    path: '{{ tomcat_catalina_base }}/conf/{{ item }}'
+    path: '{{ _tomcat_catalina_base }}/conf/{{ item }}'
     owner: '{{ tomcat_user }}'
     group: '{{ tomcat_group }}'
     mode: '0640'
@@ -83,7 +83,7 @@
 - name: ensure tomcat server.xml exists
   template:
     src: catalina_base.conf.server.xml.j2
-    dest: "{{ tomcat_catalina_base }}/conf/server.xml"
+    dest: "{{ _tomcat_catalina_base }}/conf/server.xml"
     owner: "{{ tomcat_user }}"
     group: "{{ tomcat_group }}"
     mode: '0640'
@@ -91,7 +91,7 @@
 
 - name: create host config directory for tomcat rewrite rules (if applicable)
   file:
-    path: "{{ tomcat_catalina_base }}/conf/Catalina/{{ tomcat_default_host }}"
+    path: "{{ _tomcat_catalina_base }}/conf/Catalina/{{ tomcat_default_host }}"
     state: directory
     owner: "{{ tomcat_user }}"
     group: "{{ tomcat_group }}"
@@ -102,7 +102,7 @@
 - name: ensure tomcat rewrite rules are placed (if applicable)
   copy:
     content: "{{ tomcat_rewrite_rules | join('\n')}}"
-    dest: "{{ tomcat_catalina_base }}/conf/Catalina/{{ tomcat_default_host }}/rewrite.config"
+    dest: "{{ _tomcat_catalina_base }}/conf/Catalina/{{ tomcat_default_host }}/rewrite.config"
     owner: "{{ tomcat_user }}"
     group: "{{ tomcat_group }}"
     mode: '0640'
@@ -110,13 +110,13 @@
   tags: ['tomcat']
 
 - name: create defaultHost directory
-  file: path="{{ tomcat_catalina_base }}/conf/Catalina/{{ tomcat_default_host }}" state=directory owner="{{ tomcat_user }}" group="{{ tomcat_group }}" mode='0750'
+  file: path="{{ _tomcat_catalina_base }}/conf/Catalina/{{ tomcat_default_host }}" state=directory owner="{{ tomcat_user }}" group="{{ tomcat_group }}" mode='0750'
   tags: ['tomcat']
 
 - name: ensure tomcat manager.xml exists
   template:
     src: catalina_base.conf.Catalina.defaultHost.manager.xml.j2
-    dest: "{{ tomcat_catalina_base }}/conf/Catalina/{{ tomcat_default_host }}/manager.xml"
+    dest: "{{ _tomcat_catalina_base }}/conf/Catalina/{{ tomcat_default_host }}/manager.xml"
     owner: "{{ tomcat_user }}"
     group: "{{ tomcat_group }}"
     mode: '0640'
@@ -126,7 +126,7 @@
 - name: ensure tomcat-users.xml exists
   template:
     src: catalina_base.conf.tomcat-users.xml.j2
-    dest: "{{ tomcat_catalina_base }}/conf/tomcat-users.xml"
+    dest: "{{ _tomcat_catalina_base }}/conf/tomcat-users.xml"
     owner: "{{ tomcat_user }}"
     group: "{{ tomcat_group }}"
     mode: '0640'
@@ -135,7 +135,7 @@
 - name: ensure logging.properties exists
   template:
     src: catalina_base.conf.logging.properties.j2
-    dest: "{{ tomcat_catalina_base }}/conf/logging.properties"
+    dest: "{{ _tomcat_catalina_base }}/conf/logging.properties"
     owner: "{{ tomcat_user }}"
     group: "{{ tomcat_group }}"
     mode: 0600
@@ -149,14 +149,14 @@
     group: "{{ tomcat_group }}"
     mode: '0750'
   with_items:
-    - "{{ tomcat_catalina_base }}/conf/Catalina/"
-    - "{{ tomcat_catalina_base }}/conf/Catalina/{{ tomcat_default_host }}"
+    - "{{ _tomcat_catalina_base }}/conf/Catalina/"
+    - "{{ _tomcat_catalina_base }}/conf/Catalina/{{ tomcat_default_host }}"
   tags: ['tomcat']
 
 - name: create pre-defined global contexts
   template:
     src: catalina_base.conf.context.xml.j2
-    dest: "{{ tomcat_catalina_base }}/conf/context.xml"
+    dest: "{{ _tomcat_catalina_base }}/conf/context.xml"
     owner: "{{ tomcat_user }}"
     group: "{{ tomcat_group }}"
     mode: '0640'
@@ -165,7 +165,7 @@
 - name: create pre-defined webapp contexts
   template:
     src: catalina_base.conf.Catalina.context.xml.j2
-    dest: "{{ tomcat_catalina_base }}/conf/Catalina/{{ tomcat_default_host }}/{{ item.name }}.xml"
+    dest: "{{ _tomcat_catalina_base }}/conf/Catalina/{{ tomcat_default_host }}/{{ item.name }}.xml"
     owner: "{{ tomcat_user }}"
     group: "{{ tomcat_group }}"
     mode: '0750'
@@ -205,7 +205,7 @@
 - name: ensure tomcat setenv.sh exists
   template:
     src: catalina_base.bin.setenv.sh.j2
-    dest: "{{ tomcat_catalina_base }}/bin/setenv.sh"
+    dest: "{{ _tomcat_catalina_base }}/bin/setenv.sh"
     owner: "{{ tomcat_user }}"
     group: "{{ tomcat_group }}"
     mode: 0600
@@ -217,7 +217,7 @@
 - name: ensure tomcat env var file exists
   template:
     src: etc.sysconfig.tomcat.j2
-    dest: "/etc/sysconfig/{{ tomcat_service }}"
+    dest: "/etc/sysconfig/{{ _tomcat_service }}"
     owner: "{{ tomcat_user }}"
     group: "{{ tomcat_group }}"
     mode: 0600
@@ -226,7 +226,7 @@
 
 - name: ensure tomcat is started
   service: 
-    name: "{{ tomcat_service }}"
+    name: "{{ _tomcat_service }}"
     enabled: true
     state: started
   when: tomcat_start_service

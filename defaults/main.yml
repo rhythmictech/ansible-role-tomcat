@@ -3,9 +3,24 @@
 ########################################
 # General Variables
 ########################################
-
 tomcat_install_from_repo: false
-tomcat_packages: []
+tomcat_major_version: 9
+
+# Used with binary installs
+tomcat_version: 9.0.33
+
+tomcat_catalina_base: "/opt/tomcat"
+tomcat_catalina_home: "{{ tomcat_catalina_home_install_dir }}/tomcat"
+tomcat_catalina_home_install_dir: "/usr/local"
+tomcat_working_dir: "/home/{{ tomcat_user }}"
+
+tomcat_mirror: "https://archive.apache.org/dist"
+tomcat_download_url: "{{ tomcat_mirror }}/tomcat/tomcat-{{ tomcat_major_version }}/v{{ tomcat_version }}/bin/apache-tomcat-{{ tomcat_version }}.tar.gz"
+tomcat_checksum_url: "https://downloads.apache.org/tomcat/tomcat-{{ tomcat_major_version }}/v{{ tomcat_version }}/bin/apache-tomcat-{{ tomcat_version }}.tar.gz.sha512"
+
+# Used with RPM installs
+tomcat_packages:
+  - "tomcat{{ tomcat_major_version }}"
 
 ########################################
 # Security Variables
@@ -51,28 +66,21 @@ tomcat_ajp_connector_options: ""
 ########################################
 # Tomcat Variables
 ########################################
-
-tomcat_contexts: []
-
 tomcat_allow_root_symlinks: false
-
-tomcat_global_context:
-  jdbc_resources: []
-
-tomcat_preserve_proxy_info: True
-
-tomcat_extra_loggers: []
-
 tomcat_enable_collectd: false
-
 tomcat_enable_manager: false
 tomcat_manager_remoteaddr_allow: "127\\.0\\.0\\.1"
 tomcat_manager_password: 'SETME'
-
-tomcat_local_mapping: {}
-
-tomcat_rewrite_rules: []
-
+tomcat_preserve_proxy_info: True
+tomcat_shutdown_wait: 20
 tomcat_start_service: false
 
-tomcat_shutdown_wait: 20
+tomcat_contexts: []
+tomcat_extra_loggers: []
+tomcat_global_context:
+  jdbc_resources: []
+tomcat_local_mapping: {}
+tomcat_rewrite_rules: []
+
+# This is only compatible with JDK 8 and older
+tomcat_java_endorsed_dirs: []

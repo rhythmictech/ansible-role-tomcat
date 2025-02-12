@@ -8,7 +8,7 @@
 
 - name: Create unit file override directory if configured
   file:
-    path: "/etc/systemd/system/{{ tomcat_service }}.service.d/"
+    path: "/etc/systemd/system/{{ _tomcat_service }}.service.d/"
     state: directory
     owner: root
     group: root
@@ -18,7 +18,7 @@
 - name: Place unit file overrides if configured
   template:
     src: etc.systemd.system.tomcat9.service.d.overrides.conf
-    dest: "/etc/systemd/system/{{ tomcat_service }}.service.d/overrides.conf"
+    dest: "/etc/systemd/system/{{ _tomcat_service }}.service.d/overrides.conf"
     owner: root
     group: root
     mode: '0644'

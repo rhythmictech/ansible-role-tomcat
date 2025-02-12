@@ -12,8 +12,8 @@ prog=tomcat
 [ -r /etc/java/java.conf ] && . /etc/java/java.conf
 export JAVA_HOME
 
-CATALINA_HOME={{ tomcat_catalina_home }}
-CATALINA_BASE={{ tomcat_catalina_base }}
+CATALINA_HOME={{ _tomcat_catalina_home }}
+CATALINA_BASE={{ _tomcat_catalina_base }}
 TOMCAT_USER={{ tomcat_user }}
 SHUTDOWN_WAIT=20
 

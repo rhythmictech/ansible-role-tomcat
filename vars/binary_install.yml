@@ -1,24 +1,5 @@
 ---
-########################################
-# Version/URLs
-########################################
-
-tomcat_major_version: 9
-tomcat_version: 9.0.33
-tomcat_mirror: "https://archive.apache.org/dist"
-tomcat_download_url: "{{ tomcat_mirror }}/tomcat/tomcat-{{ tomcat_major_version }}/v{{ tomcat_version }}/bin/apache-tomcat-{{ tomcat_version }}.tar.gz"
-tomcat_checksum_url: "https://downloads.apache.org/tomcat/tomcat-{{ tomcat_major_version }}/v{{ tomcat_version }}/bin/apache-tomcat-{{ tomcat_version }}.tar.gz.sha512"
-tomcat_service: tomcat
-
-########################################
-# Path/FS Variables
-########################################
-
-tomcat_catalina_base_install_dir: "/opt"
-tomcat_catalina_base: "{{ tomcat_catalina_base_install_dir }}/tomcat"
-tomcat_catalina_home_install_dir: "/usr/local"
-tomcat_catalina_home: "{{ tomcat_catalina_home_install_dir }}/tomcat"
-tomcat_working_dir: "/home/{{ tomcat_user }}"
-# This is only compatible with JDK 8 and older
-tomcat_java_endorsed_dirs: []
-
+_tomcat_service: tomcat
+_tomcat_catalina_base: "{{ tomcat_catalina_base }}"
+_tomcat_catalina_home_install_dir: "{{ tomcat_catalina_home_install_dir }}"
+_tomcat_catalina_home: "{{ tomcat_catalina_home }}"

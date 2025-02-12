@@ -1,1 +1,1 @@
-{{ tomcat_user }} ALL=(ALL) NOPASSWD: /sbin/service {{ tomcat_service }} *, /bin/systemctl stop {{ tomcat_service }}, /bin/systemctl start {{ tomcat_service }}
+{{ tomcat_user }} ALL=(ALL) NOPASSWD: /sbin/service {{ _tomcat_service }} *, /bin/systemctl stop {{ _tomcat_service }}, /bin/systemctl start {{ _tomcat_service }}

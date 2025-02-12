@@ -28,7 +28,7 @@
   tags: ['tomcat']
 
 - name: check if this tomcat version has been installed before
-  stat: path="{{ tomcat_catalina_home_install_dir }}/apache-tomcat-{{ tomcat_version }}"
+  stat: path="{{ _tomcat_catalina_home_install_dir }}/apache-tomcat-{{ tomcat_version }}"
   register: tomcat_install_found
   tags: ['tomcat']
 
@@ -44,15 +44,15 @@
 - name: extract tomcat to tomcat_home
   unarchive:
     src: "/usr/src/tomcat-{{ tomcat_version }}.tar.gz"
-    dest: "{{ tomcat_catalina_home_install_dir }}"
+    dest: "{{ _tomcat_catalina_home_install_dir }}"
     remote_src: true
   when: tomcat_install_found.stat.exists == false
   tags: ['tomcat']
 
 - name: symlink tomcat location
   file:
-    src: "{{ tomcat_catalina_home_install_dir }}/apache-tomcat-{{ tomcat_version }}"
-    dest: "{{ tomcat_catalina_home }}"
+    src: "{{ _tomcat_catalina_home_install_dir }}/apache-tomcat-{{ tomcat_version }}"
+    dest: "{{ _tomcat_catalina_home }}"
     owner: "root"
     group: "{{ tomcat_group }}"
     state: link
@@ -61,7 +61,7 @@
 
 - name: remove noisy files
   file:
-    path: "{{ tomcat_catalina_home }}/{{ item }}"
+    path: "{{ _tomcat_catalina_home }}/{{ item }}"
     state: absent
   with_items:
     - work
@@ -72,9 +72,14 @@
     - RUNNING.txt
   tags: ['tomcat']
 
+- name: check if tomcat conf dir has been copied before
+  stat: path={{ _tomcat_catalina_home }}/conf.dist
+  register: tomcat_conf_dist_found
+  tags: ['tomcat']
+
 - name: rename conf dir
   command:
-    mv {{ tomcat_catalina_home }}/conf {{ tomcat_catalina_home }}/conf.dist
+    mv {{ _tomcat_catalina_home }}/conf {{ _tomcat_catalina_home }}/conf.dist
   when: tomcat_conf_dist_found.stat.exists == false
   tags: ['tomcat']
 
@@ -106,7 +111,7 @@
     group: root
     mode: '0755'
   register: tomcat_unit_file
-  when: ansible_distribution_major_version == '7' or ansible_distribution_major_version == '8'
+  when: ansible_distribution_major_version >= '7'
   tags: ['tomcat']
 
 - name: reload systemd
