@@ -67,6 +67,28 @@
   when: tomcat_conf_found.stat.exists == false
   tags: ['tomcat']
 
+- name: Add HTTP Header Security Filter to web.xml
+  ansible.builtin.blockinfile:
+    path: "{{ _tomcat_catalina_base }}/conf/web.xml"
+    insertbefore: "</web-app>"
+    marker: "<!-- {mark} ANSIBLE MANAGED HTTP HEADER SECURITY FILTER -->"
+    block: |
+      <filter>
+        <filter-name>httpHeaderSecurity</filter-name>
+        <filter-class>org.apache.catalina.filters.HttpHeaderSecurityFilter</filter-class>
+        <init-param>
+          <param-name>antiClickJackingOption</param-name>
+          <param-value>SAMEORIGIN</param-value>
+        </init-param>
+      </filter>
+      <filter-mapping>
+        <filter-name>httpHeaderSecurity</filter-name>
+        <url-pattern>/*</url-pattern>
+        <dispatcher>REQUEST</dispatcher>
+      </filter-mapping>
+  when: tomcat_secure_http_headers
+  tags: ['tomcat']
+
 - name: secure catalina base config files 
   file:
     path: '{{ _tomcat_catalina_base }}/conf/{{ item }}'

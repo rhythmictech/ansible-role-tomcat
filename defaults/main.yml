@@ -22,6 +22,8 @@ tomcat_checksum_url: "https://downloads.apache.org/tomcat/tomcat-{{ tomcat_major
 tomcat_packages:
   - "tomcat{{ tomcat_major_version }}"
 
+tomcat_secure_http_headers: true
+
 ########################################
 # Security Variables
 ########################################
