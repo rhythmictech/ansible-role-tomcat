@@ -19,7 +19,7 @@
   <Service name="Catalina">
 
     <Connector port="{{ tomcat_http_port }}" protocol="HTTP/1.1"
-               connectionTimeout="20000" scheme="http"
+               connectionTimeout="{{ tomcat_connection_timeout }}" scheme="http"
                {{ tomcat_http_connector_options }}
                />
 

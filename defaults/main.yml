@@ -24,6 +24,8 @@ tomcat_packages:
 
 tomcat_secure_http_headers: true
 
+tomcat_connection_timeout: 20000
+
 ########################################
 # Security Variables
 ########################################
