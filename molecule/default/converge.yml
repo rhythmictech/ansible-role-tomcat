@@ -7,4 +7,4 @@
   tasks:
     - name: "Include ansible-role-tomcat"
       include_role:
-        name: "ansible-role-tomcat"
+        name: "rhythmictech.tomcat"

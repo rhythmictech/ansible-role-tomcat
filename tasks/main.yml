@@ -35,6 +35,7 @@
 - name: give tomcat group access to read all in CATALINA_HOME
   command: "find {{ _tomcat_catalina_home }}/ -exec /bin/chgrp {{ tomcat_group }} {} \\;"
   tags: ['tomcat']
+  changed_when: false
   
 - name: restrict access to CATALINA_HOME
   file: path="{{ _tomcat_catalina_home }}" state=directory owner="root" group="{{ tomcat_group }}" mode='0750'

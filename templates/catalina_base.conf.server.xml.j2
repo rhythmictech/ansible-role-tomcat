@@ -48,6 +48,10 @@
 {% if tomcat_rewrite_rules|length > 0 %}
         <Valve className="org.apache.catalina.valves.rewrite.RewriteValve" />
 {% endif %}
+{% if tomcat_suppress_error_reports %}
+        <Valve className="org.apache.catalina.valves.ErrorReportValve"
+               showReport="false" showServerInfo="false" />
+{% endif %}
         <Valve className="org.apache.catalina.valves.AccessLogValve" directory="logs"
                prefix="localhost_access_log" suffix=".txt"
                pattern="%h %l %u %t &quot;%r&quot; %s %b" />

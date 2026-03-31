@@ -37,6 +37,8 @@ tomcat_umask: '0022'
 tomcat_add_user_to_group: false
 tomcat_unit_file_overrides: []
 
+tomcat_suppress_error_reports: true
+
 # This will be randomly generated every ansible run if not set
 tomcat_shutdown_value: 'SETME'
 
