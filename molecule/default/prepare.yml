@@ -1,0 +1,8 @@
+---
+- name: Prepare
+  hosts: all
+  tasks:
+    - name: ensure tar is installed
+      ansible.builtin.package:
+        name: tar
+        state: present

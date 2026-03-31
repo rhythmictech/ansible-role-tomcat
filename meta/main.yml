@@ -1,6 +1,8 @@
 ---
 
 galaxy_info:
+  role_name: tomcat
+  namespace: rhythmictech
   author: Rhythmic Open Source <opensource@rhythmictech.com>
   description: Ansible Role for Apache Tomcat
   company: Rhythmic Technologies, Inc.
