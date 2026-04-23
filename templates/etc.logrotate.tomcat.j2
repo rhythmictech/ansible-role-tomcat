@@ -5,3 +5,15 @@ compress
 missingok
 copytruncate
 }
+
+{{ _tomcat_catalina_base }}/logs/host-manager*.log
+{{ _tomcat_catalina_base }}/logs/localhost*.log 
+{{ _tomcat_catalina_base }}/logs/localhost_access_log*.txt
+{{ _tomcat_catalina_base }}/logs/manager*.log {
+    daily
+    rotate 0
+    maxage 60
+    missingok
+    nocompress
+    nocreate
+}
