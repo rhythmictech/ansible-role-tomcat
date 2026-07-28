@@ -1,5 +1,11 @@
-molecule==3.0.2
-ansible==2.8.8
-ansible-lint==4.1.0
-docker==4.0.2
-boto3==1.9.212
+# Local development / test toolchain. These are the versions the molecule
+# default scenario is verified against; the GitHub Actions lint and test jobs
+# run molecule from the robertdebock/molecule-action image instead.
+#
+# Collections are declared separately in molecule/default/collections.yml.
+ansible-core==2.21.2
+ansible-lint==26.6.0
+docker==7.2.0
+molecule==26.6.0
+molecule-plugins[docker]==26.7.15
+yamllint==1.38.0
