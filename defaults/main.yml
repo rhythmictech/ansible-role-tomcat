@@ -23,6 +23,13 @@ tomcat_packages:
   - "tomcat{{ tomcat_major_version }}"
 
 tomcat_secure_http_headers: true
+tomcat_secure_session_cookie: true
+
+# Refresh CATALINA_BASE/conf/web.xml from the installed distribution's stock
+# descriptor whenever that descriptor changes (i.e. on a Tomcat upgrade).
+# Without this, conf/web.xml keeps whatever base it had when the host was first
+# provisioned, since the conf.dist copy only runs on initial provisioning.
+tomcat_manage_webxml_baseline: true
 
 tomcat_connection_timeout: 20000
 
@@ -82,6 +89,18 @@ tomcat_shutdown_wait: 20
 tomcat_start_service: false
 
 tomcat_contexts: []
+# Additional servlet filters to declare in CATALINA_BASE/conf/web.xml. Only
+# `name` and `class` are required. Emptying the list removes the managed block.
+# The filter class must already be on the shared classpath -- conf/web.xml is
+# the global descriptor, so an unloadable class fails every context on startup.
+#   - name: myFilter
+#     class: com.example.MyFilter
+#     url_pattern: '/*'          # default '/*'
+#     dispatchers: ['REQUEST']   # default ['REQUEST']
+#     init_params:
+#       - name: someOption
+#         value: someValue
+tomcat_extra_filters: []
 tomcat_extra_loggers: []
 tomcat_global_context:
   jdbc_resources: []

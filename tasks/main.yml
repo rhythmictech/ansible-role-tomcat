@@ -27,7 +27,27 @@
   when: tomcat_add_user_to_group
   tags: ['tomcat']
   
-- set_fact: 
+# Without this, the set_fact below mints a new random value on every run, so
+# server.xml is rewritten every time (and the on-disk value drifts from the
+# running one, since nothing restarts tomcat for a server.xml change).
+- name: read any existing tomcat shutdown value
+  ansible.builtin.command:
+    cmd: sed -n 's/.*<Server[^>]*shutdown="\([^"]*\)".*/\1/p' {{ _tomcat_catalina_base }}/conf/server.xml
+  register: tomcat_shutdown_existing
+  changed_when: false
+  failed_when: false
+  check_mode: false
+  tags: ['tomcat']
+
+- name: preserve the existing tomcat shutdown value
+  ansible.builtin.set_fact:
+    tomcat_shutdown_value: "{{ tomcat_shutdown_existing.stdout_lines | first }}"
+  when:
+    - tomcat_shutdown_value == "SETME"
+    - tomcat_shutdown_existing.stdout_lines | default([]) | length > 0
+  tags: ['tomcat']
+
+- set_fact:
     tomcat_shutdown_value: "{{ lookup('password', '/dev/null length=20 chars=ascii_letters') }}"
   when: tomcat_shutdown_value == "SETME"
   tags: ['tomcat']
@@ -68,6 +88,70 @@
   when: tomcat_conf_found.stat.exists == false
   tags: ['tomcat']
 
+# The conf.dist copy above only runs on initial provisioning, so conf/web.xml
+# would otherwise keep its original base forever and drift from the installed
+# Tomcat version. Stamping with conf.dist's checksum (rather than
+# tomcat_version) keeps this correct even if the stamp and the installed
+# distribution get out of step. Skipped for rpm installs, which have no
+# conf.dist.
+- name: check for the tomcat distribution's stock web.xml
+  ansible.builtin.stat:
+    path: "{{ _tomcat_catalina_home }}/conf.dist/web.xml"
+    checksum_algorithm: sha1
+  register: tomcat_webxml_dist
+  when: tomcat_manage_webxml_baseline
+  tags: ['tomcat']
+
+- name: check whether catalina base web.xml is present
+  ansible.builtin.stat:
+    path: "{{ _tomcat_catalina_base }}/conf/web.xml"
+  register: tomcat_webxml_current
+  when: tomcat_manage_webxml_baseline
+  tags: ['tomcat']
+
+- name: check the web.xml baseline stamp
+  ansible.builtin.command:
+    cmd: grep -q "ANSIBLE MANAGED WEBXML BASELINE {{ tomcat_webxml_dist.stat.checksum }}" {{ _tomcat_catalina_base }}/conf/web.xml
+  register: tomcat_webxml_stamp
+  changed_when: false
+  failed_when: false
+  check_mode: false
+  when:
+    - tomcat_manage_webxml_baseline
+    - tomcat_webxml_dist.stat.exists | default(false)
+    - tomcat_webxml_current.stat.exists | default(false)
+  tags: ['tomcat']
+
+- name: refresh web.xml from the tomcat distribution
+  ansible.builtin.copy:
+    src: "{{ _tomcat_catalina_home }}/conf.dist/web.xml"
+    remote_src: true
+    dest: "{{ _tomcat_catalina_base }}/conf/web.xml"
+    owner: "{{ tomcat_user }}"
+    group: "{{ tomcat_group }}"
+    mode: '0640'
+  when:
+    - tomcat_manage_webxml_baseline
+    - tomcat_webxml_dist.stat.exists | default(false)
+    - tomcat_webxml_current.stat.exists | default(false)
+    - tomcat_webxml_stamp.rc | default(1) != 0
+  tags: ['tomcat']
+
+- name: stamp web.xml with its baseline checksum
+  ansible.builtin.lineinfile:
+    path: "{{ _tomcat_catalina_base }}/conf/web.xml"
+    insertbefore: "</web-app>"
+    line: "<!-- ANSIBLE MANAGED WEBXML BASELINE {{ tomcat_webxml_dist.stat.checksum }} -->"
+    owner: "{{ tomcat_user }}"
+    group: "{{ tomcat_group }}"
+    mode: '0640'
+  when:
+    - tomcat_manage_webxml_baseline
+    - tomcat_webxml_dist.stat.exists | default(false)
+    - tomcat_webxml_current.stat.exists | default(false)
+    - tomcat_webxml_stamp.rc | default(1) != 0
+  tags: ['tomcat']
+
 - name: Add HTTP Header Security Filter to web.xml
   ansible.builtin.blockinfile:
     path: "{{ _tomcat_catalina_base }}/conf/web.xml"
@@ -90,7 +174,73 @@
   when: tomcat_secure_http_headers
   tags: ['tomcat']
 
-- name: secure catalina base config files 
+# Declared after the httpHeaderSecurity block so that filter keeps precedence in
+# the chain. `state` is driven by the list so emptying it removes the block
+# rather than orphaning it. Registered (rather than notifying a handler) so
+# consumers can decide whether a web.xml change warrants a restart.
+- name: manage extra web.xml filters
+  ansible.builtin.blockinfile:
+    path: "{{ _tomcat_catalina_base }}/conf/web.xml"
+    insertbefore: "</web-app>"
+    marker: "<!-- {mark} ANSIBLE MANAGED EXTRA FILTERS -->"
+    state: "{{ 'present' if tomcat_extra_filters else 'absent' }}"
+    owner: "{{ tomcat_user }}"
+    group: "{{ tomcat_group }}"
+    mode: '0640'
+    block: |
+      {% for f in tomcat_extra_filters %}
+      <filter>
+          <filter-name>{{ f.name }}</filter-name>
+          <filter-class>{{ f.class }}</filter-class>
+      {% for p in f.init_params | default([]) %}
+          <init-param>
+              <param-name>{{ p.name }}</param-name>
+              <param-value>{{ p.value }}</param-value>
+          </init-param>
+      {% endfor %}
+      </filter>
+      <filter-mapping>
+          <filter-name>{{ f.name }}</filter-name>
+          <url-pattern>{{ f.url_pattern | default('/*') }}</url-pattern>
+      {% for d in f.dispatchers | default(['REQUEST']) %}
+          <dispatcher>{{ d }}</dispatcher>
+      {% endfor %}
+      </filter-mapping>
+      {% endfor %}
+  register: tomcat_extra_filters_webxml
+  tags: ['tomcat']
+
+- name: Ensure cookie-config element exists in session-config
+  community.general.xml:
+    path: "{{ _tomcat_catalina_base }}/conf/web.xml"
+    xpath: /javaee:web-app/javaee:session-config/javaee:cookie-config
+    namespaces:
+      javaee: http://xmlns.jcp.org/xml/ns/javaee
+    state: present
+  when: tomcat_secure_session_cookie
+  tags: ['tomcat']
+
+- name: Set http-only flag on session cookie
+  community.general.xml:
+    path: "{{ _tomcat_catalina_base }}/conf/web.xml"
+    xpath: /javaee:web-app/javaee:session-config/javaee:cookie-config/javaee:http-only
+    namespaces:
+      javaee: http://xmlns.jcp.org/xml/ns/javaee
+    value: "true"
+  when: tomcat_secure_session_cookie
+  tags: ['tomcat']
+
+- name: Set secure flag on session cookie
+  community.general.xml:
+    path: "{{ _tomcat_catalina_base }}/conf/web.xml"
+    xpath: /javaee:web-app/javaee:session-config/javaee:cookie-config/javaee:secure
+    namespaces:
+      javaee: http://xmlns.jcp.org/xml/ns/javaee
+    value: "true"
+  when: tomcat_secure_session_cookie
+  tags: ['tomcat']
+
+- name: secure catalina base config files
   file:
     path: '{{ _tomcat_catalina_base }}/conf/{{ item }}'
     owner: '{{ tomcat_user }}'
