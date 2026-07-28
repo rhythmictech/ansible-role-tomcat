@@ -26,11 +26,13 @@
     groups: ["{{ tomcat_group }}"]
   when: tomcat_add_user_to_group
   tags: ['tomcat']
-  
+
 # Without this, the set_fact below mints a new random value on every run, so
 # server.xml is rewritten every time (and the on-disk value drifts from the
 # running one, since nothing restarts tomcat for a server.xml change).
-- name: read any existing tomcat shutdown value
+# The noqa below is because this reads a value out of server.xml rather than
+# editing it, so template/replace/lineinfile genuinely do not apply.
+- name: read any existing tomcat shutdown value  # noqa: command-instead-of-module
   ansible.builtin.command:
     cmd: sed -n 's/.*<Server[^>]*shutdown="\([^"]*\)".*/\1/p' {{ _tomcat_catalina_base }}/conf/server.xml
   register: tomcat_shutdown_existing
@@ -47,7 +49,8 @@
     - tomcat_shutdown_existing.stdout_lines | default([]) | length > 0
   tags: ['tomcat']
 
-- set_fact:
+- name: generate a random tomcat shutdown value
+  set_fact:
     tomcat_shutdown_value: "{{ lookup('password', '/dev/null length=20 chars=ascii_letters') }}"
   when: tomcat_shutdown_value == "SETME"
   tags: ['tomcat']
@@ -56,7 +59,7 @@
   command: "find {{ _tomcat_catalina_home }}/ -exec /bin/chgrp {{ tomcat_group }} {} \\;"
   tags: ['tomcat']
   changed_when: false
-  
+
 - name: restrict access to CATALINA_HOME
   file: path="{{ _tomcat_catalina_home }}" state=directory owner="root" group="{{ tomcat_group }}" mode='0750'
   tags: ['tomcat']
@@ -85,7 +88,8 @@
 
 - name: copy tomcat conf.dist folder
   shell: "/bin/cp -R /usr/local/tomcat/conf.dist/* {{ _tomcat_catalina_base }}/conf"
-  when: tomcat_conf_found.stat.exists == false
+  when: not tomcat_conf_found.stat.exists
+  changed_when: true
   tags: ['tomcat']
 
 # The conf.dist copy above only runs on initial provisioning, so conf/web.xml
@@ -320,7 +324,7 @@
     dest: "{{ _tomcat_catalina_base }}/conf/logging.properties"
     owner: "{{ tomcat_user }}"
     group: "{{ tomcat_group }}"
-    mode: 0600
+    mode: '0600'
   tags: ['tomcat']
 
 - name: ensure context directory exists
@@ -367,7 +371,7 @@
 
 - name: ensure collectd jvm package is installed
   yum:
-    name: ['collectd-java','collectd-generic-jmx']
+    name: ['collectd-java', 'collectd-generic-jmx']
     state: present
   notify: restart collectd
   when: tomcat_enable_collectd
@@ -390,7 +394,7 @@
     dest: "{{ _tomcat_catalina_base }}/bin/setenv.sh"
     owner: "{{ tomcat_user }}"
     group: "{{ tomcat_group }}"
-    mode: 0600
+    mode: '0600'
   when: not tomcat_install_from_repo
   tags: ['tomcat']
 
@@ -402,12 +406,12 @@
     dest: "/etc/sysconfig/{{ _tomcat_service }}"
     owner: "{{ tomcat_user }}"
     group: "{{ tomcat_group }}"
-    mode: 0600
+    mode: '0600'
   when: tomcat_install_from_repo
   tags: ['tomcat']
 
 - name: ensure tomcat is started
-  service: 
+  service:
     name: "{{ _tomcat_service }}"
     enabled: true
     state: started

@@ -1,9 +1,11 @@
 ---
-- set_fact: ansible_distribution_major_version=6
+- name: map amazon linux 1 to its centos equivalent
+  set_fact: ansible_distribution_major_version=6
   when: ansible_distribution == "Amazon" and ansible_distribution_major_version == "NA"
   tags: ['tomcat']
 
-- set_fact: ansible_distribution_major_version=7
+- name: map amazon linux 2 to its centos equivalent
+  set_fact: ansible_distribution_major_version=7
   when: ansible_distribution == "Amazon" and ansible_distribution_major_version == "2"
   tags: ['tomcat']
 
@@ -36,9 +38,10 @@
   get_url:
     url: "{{ tomcat_download_url }}"
     dest: "/usr/src/tomcat-{{ tomcat_version }}.tar.gz"
+    mode: '0644'
     # this isn't validating correctly, not sure if ansible supports sha512 yet
-    #checksum: "sha512:{{ tomcat_checksum_url }}"
-  when: tomcat_install_found.stat.exists == false
+    # checksum: "sha512:{{ tomcat_checksum_url }}"
+  when: not tomcat_install_found.stat.exists
   tags: ['tomcat']
 
 - name: extract tomcat to tomcat_home
@@ -46,7 +49,7 @@
     src: "/usr/src/tomcat-{{ tomcat_version }}.tar.gz"
     dest: "{{ _tomcat_catalina_home_install_dir }}"
     remote_src: true
-  when: tomcat_install_found.stat.exists == false
+  when: not tomcat_install_found.stat.exists
   tags: ['tomcat']
 
 - name: symlink tomcat location
@@ -56,7 +59,7 @@
     owner: "root"
     group: "{{ tomcat_group }}"
     state: link
-  when: tomcat_install_found.stat.exists == false
+  when: not tomcat_install_found.stat.exists
   tags: ['tomcat']
 
 - name: remove noisy files
@@ -80,7 +83,8 @@
 - name: rename conf dir
   command:
     mv {{ _tomcat_catalina_home }}/conf {{ _tomcat_catalina_home }}/conf.dist
-  when: tomcat_conf_dist_found.stat.exists == false
+  when: not tomcat_conf_dist_found.stat.exists
+  changed_when: true
   tags: ['tomcat']
 
 - name: ensure /etc/init.d/tomcat exists
