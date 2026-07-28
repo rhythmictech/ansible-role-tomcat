@@ -1,0 +1,11 @@
+---
+collections:
+  # Required by the role itself (community.general.xml drives the web.xml
+  # session-config edits).
+  - name: community.general
+    version: ">=1.0.0"
+  # Required by the molecule docker driver.
+  - name: community.docker
+    version: ">=3.10.2"
+  - name: ansible.posix
+    version: ">=1.4.0"

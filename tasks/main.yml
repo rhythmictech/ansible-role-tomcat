@@ -210,6 +210,15 @@
   register: tomcat_extra_filters_webxml
   tags: ['tomcat']
 
+# community.general.xml runs on the target and needs lxml there. Package name
+# differs because CentOS 6/7 hosts run ansible under python2.
+- name: ensure lxml is available for the web.xml session-config edits
+  ansible.builtin.package:
+    name: "{{ 'python3-lxml' if ansible_python_version is version('3', '>=') else 'python-lxml' }}"
+    state: present
+  when: tomcat_secure_session_cookie
+  tags: ['tomcat']
+
 - name: Ensure cookie-config element exists in session-config
   community.general.xml:
     path: "{{ _tomcat_catalina_base }}/conf/web.xml"
