@@ -1,3 +1,4 @@
+---
 extends: default
 
 rules:
@@ -9,3 +10,6 @@ rules:
     level: error
   line-length: disable
   truthy: disable
+  octal-values:
+    forbid-implicit-octal: true
+    forbid-explicit-octal: true

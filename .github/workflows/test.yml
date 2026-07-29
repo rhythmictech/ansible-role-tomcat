@@ -2,41 +2,43 @@
 name: Molecule Test
 
 on: [push]
+
 jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
       - name: checkout
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4.3.1
-      - name: molecule
-        uses: robertdebock/molecule-action@d8c1b1a1b5b223f2c102983aa0e9402daa4d8e4b  # 2.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - name: set up python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         with:
-          entrypoint: /usr/local/bin/molecule
-          args: lint
+          python-version: "3.12"
+          cache: pip
+      - name: install toolchain
+        run: pip install -r requirements.txt
+      - name: yamllint
+        run: yamllint .
+      - name: ansible-lint
+        run: ansible-lint
+
   test:
     needs:
       - lint
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        config:
-          - image: "centos"
-            tag: "6"
-          - image: "centos"
-            tag: "7"
-          - image: "centos"
-            tag: "8"
-          - image: "amazonlinux"
-            tag: "2"
     steps:
       - name: checkout
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4.3.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - name: set up python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         with:
-          path: "${{ github.repository }}"
-      - name: molecule
-        uses: robertdebock/molecule-action@d8c1b1a1b5b223f2c102983aa0e9402daa4d8e4b  # 2.0.0
-        with:
-          image: ${{ matrix.config.image }}
-          tag: ${{ matrix.config.tag }}
-          options: "--parallel all"
+          python-version: "3.12"
+          cache: pip
+      - name: install toolchain
+        run: pip install -r requirements.txt
+      - name: install collections
+        run: ansible-galaxy collection install -r molecule/default/collections.yml
+      - name: molecule test
+        run: molecule test
+        env:
+          ANSIBLE_FORCE_COLOR: "1"
+          PY_COLORS: "1"

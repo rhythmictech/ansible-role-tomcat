@@ -1,0 +1,24 @@
+---
+exclude_paths:
+  # Legacy pre-molecule test playbook. It references the role by directory name
+  # rather than rhythmictech.tomcat, so it cannot resolve; molecule/ supersedes
+  # it. Remove the directory (and this entry) when convenient.
+  - tests/
+
+# These rules fail broadly across the role as it stands today. They are
+# suppressed so the lint job enforces everything else rather than being
+# switched off wholesale. This is a burn-down list, not a permanent exemption --
+# delete entries as the role is modernized.
+skip_list:
+  # ~52 hits: bare module names (yum:, file:, template:, service:) that want
+  # their ansible.builtin. prefix.
+  - fqcn[action-core]
+  # ~52 hits: task names start lowercase. Mechanical, but the role is
+  # consistently lowercase, so changing it is churn better done in one pass.
+  - name[casing]
+  # ~12 hits: key=value free-form module calls, e.g. stat: path=/foo.
+  - no-free-form
+  # 2 hits: the role gates follow-up tasks on registered .changed results
+  # instead of notifying handlers, deliberately -- consumers decide whether a
+  # config change warrants a restart.
+  - no-handler

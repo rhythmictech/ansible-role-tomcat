@@ -7,11 +7,17 @@ galaxy_info:
   description: Ansible Role for Apache Tomcat
   company: Rhythmic Technologies, Inc.
   license: MIT
-  min_ansible_version: 2.8
+  min_ansible_version: "2.8"
   platforms:
-    - name: CentOS
+    # Galaxy has no "CentOS" platform; EL is the RHEL-family identifier.
+    - name: EL
       versions:
         - "6"
         - "7"
         - "8"
+    # Galaxy's Amazon version list stops at 2018.03, so AL2/AL2023 can only be
+    # expressed as "all".
+    - name: Amazon
+      versions:
+        - "all"
 dependencies: []
